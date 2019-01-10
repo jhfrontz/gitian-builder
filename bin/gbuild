@@ -105,7 +105,7 @@ EOF" if build_desc["sudo"] and @options[:allow_sudo]
   case build_desc["distro"]
   when "centos"
     info "Updating yum repository (log in var/install.log)"
-    system! "on-target -u root yum -y makecache fast >> var/install.log 2>&1"
+    system! "on-target -u root -w /root yum -y makecache fast >> var/install.log 2>&1"
   else
     info "Updating apt-get repository (log in var/install.log)"
     system! "on-target -u root apt-get update >> var/install.log 2>&1"
@@ -115,7 +115,7 @@ EOF" if build_desc["sudo"] and @options[:allow_sudo]
 
   case build_desc["distro"]
   when "centos"
-    system! "on-target -u root yum -y install #{build_desc["packages"].join(" ")} > var/install.log 2>&1"
+    system! "on-target -u root -w /root yum -y install #{build_desc["packages"].join(" ")} > var/install.log 2>&1"
   else
     system! "on-target -u root -e DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends -y install #{build_desc["packages"].join(" ")} >> var/install.log 2>&1"
   end
@@ -131,10 +131,10 @@ EOF" if build_desc["sudo"] and @options[:allow_sudo]
       info "Upgrading system, may take a while (log in var/install.log)"
       case build_desc["distro"]
       when "centos"
-        system! "on-target -u root mkdir -p /var/cache/gitian"
-        system! "on-target -u root yum -y update > var/upgrade.log 2>&1"
+        system! "on-target -u root -w /root mkdir -p /var/cache/gitian"
+        system! "on-target -u root -w /root yum -y update > var/upgrade.log 2>&1"
         system! "copy-to-target #{@quiet_flag} var/upgrade.log /var/cache/gitian/upgrade.log"
-        system! "on-target -u root touch /var/cache/gitian/initial-upgrade"
+        system! "on-target -u root -w /root touch /var/cache/gitian/initial-upgrade"
       else
         system! "on-target -u root bash < target-bin/upgrade-system.sh >> var/install.log 2>&1"
       end
@@ -143,7 +143,7 @@ EOF" if build_desc["sudo"] and @options[:allow_sudo]
 
   case build_desc["distro"]
   when "centos"
-    system! "on-target -u root yumdb get checksum_data | awk '/checksum_data =/ { print $3,  package; next } { package=$1 }' | sort --key 2 > var/base-#{suitearch}.manifest"
+    system! "on-target -u root -w /root yumdb get checksum_data | awk '/checksum_data =/ { print $3,  package; next } { package=$1 }' | sort --key 2 > var/base-#{suitearch}.manifest"
   else
     system! "on-target -u root bash < target-bin/grab-packages.sh > var/base-#{suitearch}.manifest"
   end
